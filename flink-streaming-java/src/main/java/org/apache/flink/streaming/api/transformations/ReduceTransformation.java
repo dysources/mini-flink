@@ -58,6 +58,7 @@ public final class ReduceTransformation<IN, K> extends PhysicalTransformation<IN
         this.keySelector = keySelector;
         this.keyTypeInfo = keyTypeInfo;
 
+        //使用ManagedMemory
         updateManagedMemoryStateBackendUseCase(true);
     }
 

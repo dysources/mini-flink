@@ -519,7 +519,7 @@ public class PackagedProgram implements AutoCloseable {
     public static List<File> extractContainedLibraries(URL jarFile)
             throws ProgramInvocationException {
         try (final JarFile jar = new JarFile(new File(jarFile.toURI()))) {
-
+            //加载算子包内部包含的jar
             final List<JarEntry> containedJarFileEntries = getContainedJarEntries(jar);
             if (containedJarFileEntries.isEmpty()) {
                 return Collections.emptyList();

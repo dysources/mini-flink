@@ -110,8 +110,9 @@ public class StreamGraph implements Pipeline {
 
     /** Flag to indicate whether to put all vertices into the same slot sharing group by default. */
     private boolean allVerticesInSameSlotSharingGroupByDefault = true;
-
+    //所有算子信息
     private Map<Integer, StreamNode> streamNodes;
+    //sourceNode的id
     private Set<Integer> sources;
     private Set<Integer> sinks;
     private Map<Integer, Tuple2<Integer, OutputTag>> virtualSideOutputNodes;

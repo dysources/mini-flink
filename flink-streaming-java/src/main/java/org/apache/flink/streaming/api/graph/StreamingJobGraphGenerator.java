@@ -158,40 +158,37 @@ public class StreamingJobGraphGenerator {
     }
 
     private JobGraph createJobGraph() {
+        //检测是否开启检查点
         preValidate();
         jobGraph.setJobType(streamGraph.getJobType());
-
         jobGraph.enableApproximateLocalRecovery(
                 streamGraph.getCheckpointConfig().isApproximateLocalRecoveryEnabled());
 
-        // Generate deterministic hashes for the nodes in order to identify them across
-        // submission iff they didn't change.
+        //为每个算子生成对应的hash值 Map<nodeId,hash>
         Map<Integer, byte[]> hashes =
                 defaultStreamGraphHasher.traverseStreamGraphAndGenerateHashes(streamGraph);
-
+        //支持自定义将node转换为hash值
         // Generate legacy version hashes for backwards compatibility
         List<Map<Integer, byte[]>> legacyHashes = new ArrayList<>(legacyStreamGraphHashers.size());
         for (StreamGraphHasher hasher : legacyStreamGraphHashers) {
             legacyHashes.add(hasher.traverseStreamGraphAndGenerateHashes(streamGraph));
         }
-
+        //以source作为开始，来做算子链，每个算子递归判断是否是一个算子链，有6个判断条件，都满足才是
         setChaining(hashes, legacyHashes);
-
+        //将逻辑算子连接转换为物理
         setPhysicalEdges();
-
+        //为每个算子链申请对应slot
         setSlotSharingAndCoLocation();
-
         setManagedMemoryFraction(
                 Collections.unmodifiableMap(jobVertices),
                 Collections.unmodifiableMap(vertexConfigs),
                 Collections.unmodifiableMap(chainedConfigs),
                 id -> streamGraph.getStreamNode(id).getManagedMemoryOperatorScopeUseCaseWeights(),
                 id -> streamGraph.getStreamNode(id).getManagedMemorySlotScopeUseCases());
-
+       //配置checkpoint策略，并支持自定义函数，来操作checkpoint之前，之后再做什么操作
         configureCheckpointing();
-
         jobGraph.setSavepointRestoreSettings(streamGraph.getSavepointRestoreSettings());
-
+        //配置分布式缓存，加载分布式需要的依赖包，名称为"flink-distributed-cache-{jobId}
         final Map<String, DistributedCache.DistributedCacheEntry> distributedCacheEntries =
                 JobGraphUtils.prepareUserArtifactEntries(
                         streamGraph.getUserArtifacts().stream()
@@ -202,7 +199,6 @@ public class StreamingJobGraphGenerator {
                 distributedCacheEntries.entrySet()) {
             jobGraph.addUserArtifact(entry.getKey(), entry.getValue());
         }
-
         // set the ExecutionConfig last when it has been finalized
         try {
             jobGraph.setExecutionConfig(streamGraph.getExecutionConfig());
@@ -211,7 +207,6 @@ public class StreamingJobGraphGenerator {
                     "Could not serialize the ExecutionConfig."
                             + "This indicates that non-serializable types (like custom serializers) were registered");
         }
-
         return jobGraph;
     }
 
@@ -382,6 +377,7 @@ public class StreamingJobGraphGenerator {
         }
     }
 
+    //递归判断每一个算子
     private List<StreamEdge> createChain(
             final Integer currentNodeId,
             final int chainIndex,
@@ -390,7 +386,7 @@ public class StreamingJobGraphGenerator {
 
         Integer startNodeId = chainInfo.getStartNodeId();
         if (!builtVertices.contains(startNodeId)) {
-
+            //streamEdge
             List<StreamEdge> transitiveOutEdges = new ArrayList<StreamEdge>();
 
             List<StreamEdge> chainableOutputs = new ArrayList<StreamEdge>();
@@ -552,6 +548,7 @@ public class StreamingJobGraphGenerator {
         return preferredResources;
     }
 
+    //创建作业顶点
     private StreamConfig createJobVertex(Integer streamNodeId, OperatorChainInfo chainInfo) {
 
         JobVertex jobVertex;
@@ -865,7 +862,7 @@ public class StreamingJobGraphGenerator {
                                 + streamGraph.getGlobalStreamExchangeMode());
         }
     }
-
+    //根据下游节点是否只有1个输入
     public static boolean isChainable(StreamEdge edge, StreamGraph streamGraph) {
         StreamNode downStreamVertex = streamGraph.getTargetVertex(edge);
 
@@ -875,7 +872,7 @@ public class StreamingJobGraphGenerator {
     private static boolean isChainableInput(StreamEdge edge, StreamGraph streamGraph) {
         StreamNode upStreamVertex = streamGraph.getSourceVertex(edge);
         StreamNode downStreamVertex = streamGraph.getTargetVertex(edge);
-
+        //1.是否形同slotSharingGroup 2.操作符是否可链接 3，分区器是不是ForwardPartitioner4.数据交换模式不是批 5 并行度是否相同 6 是否启用算子链
         if (!(upStreamVertex.isSameSlotSharingGroup(downStreamVertex)
                 && areOperatorsChainable(upStreamVertex, downStreamVertex, streamGraph)
                 && (edge.getPartitioner() instanceof ForwardPartitioner)
@@ -1215,6 +1212,7 @@ public class StreamingJobGraphGenerator {
         CheckpointConfig cfg = streamGraph.getCheckpointConfig();
 
         long interval = cfg.getCheckpointInterval();
+        //checkpoint间隔最小10s
         if (interval < MINIMAL_CHECKPOINT_TIME) {
             // interval of max value means disable periodic checkpoint
             interval = Long.MAX_VALUE;
@@ -1238,7 +1236,7 @@ public class StreamingJobGraphGenerator {
         } else {
             retentionAfterTermination = CheckpointRetentionPolicy.NEVER_RETAIN_AFTER_TERMINATION;
         }
-
+        //配置master钩子函数，支持自定义做checkpoint前后的操作！！
         //  --- configure the master-side checkpoint hooks ---
 
         final ArrayList<MasterTriggerRestoreHook.Factory> hooks = new ArrayList<>();

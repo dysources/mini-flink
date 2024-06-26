@@ -115,6 +115,7 @@ public class CliFrontend {
 
     private final ClusterClientServiceLoader clusterClientServiceLoader;
 
+    //client 入口类，负责将job->streamGraph -> jobGraph
     public CliFrontend(Configuration configuration, List<CustomCommandLine> customCommandLines) {
         this(configuration, new DefaultClusterClientServiceLoader(), customCommandLines);
     }
@@ -220,7 +221,7 @@ public class CliFrontend {
      */
     protected void run(String[] args) throws Exception {
         LOG.info("Running 'run' command.");
-
+        //解析args -> CommandLine
         final Options commandOptions = CliFrontendParser.getRunCommandOptions();
         final CommandLine commandLine = getCommandLine(commandOptions, args, true);
 
@@ -232,9 +233,9 @@ public class CliFrontend {
 
         final CustomCommandLine activeCommandLine =
                 validateAndGetActiveCommandLine(checkNotNull(commandLine));
-
+        //构建program参数 包含JarFilePath,parallelism,savepointSettings，entryPointClass 等
         final ProgramOptions programOptions = ProgramOptions.create(commandLine);
-
+        //获取算子包及算子包内的其他依赖
         final List<URL> jobJars = getJobJarAndDependencies(programOptions);
 
         final Configuration effectiveConfiguration =
@@ -243,6 +244,7 @@ public class CliFrontend {
         LOG.debug("Effective executor configuration: {}", effectiveConfiguration);
 
         try (PackagedProgram program = getPackagedProgram(programOptions, effectiveConfiguration)) {
+            //执行用户类的main方法
             executeProgram(effectiveConfiguration, program);
         }
     }
@@ -831,6 +833,7 @@ public class CliFrontend {
      */
     PackagedProgram buildProgram(final ProgramOptions runOptions, final Configuration configuration)
             throws FileNotFoundException, ProgramInvocationException, CliArgsException {
+        //校验是否存在算子包
         runOptions.validate();
 
         String[] programArgs = runOptions.getProgramArgs();
@@ -1040,13 +1043,10 @@ public class CliFrontend {
             System.out.println("Please specify an action.");
             return 1;
         }
-
         // get action
         String action = args[0];
-
         // remove action from parameters
         final String[] params = Arrays.copyOfRange(args, 1, args.length);
-
         try {
             // do action
             switch (action) {
@@ -1112,22 +1112,18 @@ public class CliFrontend {
     /** Submits the job based on the arguments. */
     public static void main(final String[] args) {
         EnvironmentInformation.logEnvironmentInfo(LOG, "Command Line Client", args);
-
-        // 1. find the configuration directory
+        // 1. 通过FLINK_CONF_DIR 获取confDir
         final String configurationDirectory = getConfigurationDirectoryFromEnv();
-
-        // 2. load the global configuration
+        // 2. 加载flink-conf.yaml
         final Configuration configuration =
                 GlobalConfiguration.loadConfiguration(configurationDirectory);
-
-        // 3. load the custom command lines
+        // 3. 加载通用及默认cli的，通用cli用来解析-D传的参数
         final List<CustomCommandLine> customCommandLines =
                 loadCustomCommandLines(configuration, configurationDirectory);
-
         int retCode = 31;
         try {
             final CliFrontend cli = new CliFrontend(configuration, customCommandLines);
-
+            //安全认证
             SecurityUtils.install(new SecurityConfiguration(cli.configuration));
             retCode = SecurityUtils.getInstalledContext().runSecured(() -> cli.parseAndRun(args));
         } catch (Throwable t) {

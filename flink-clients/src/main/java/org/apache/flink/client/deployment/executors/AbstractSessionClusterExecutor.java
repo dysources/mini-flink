@@ -64,6 +64,7 @@ public class AbstractSessionClusterExecutor<
             @Nonnull final Configuration configuration,
             @Nonnull final ClassLoader userCodeClassloader)
             throws Exception {
+        //构建JobGraph
         final JobGraph jobGraph = PipelineExecutorUtils.getJobGraph(pipeline, configuration);
 
         try (final ClusterDescriptor<ClusterID> clusterDescriptor =
@@ -71,6 +72,7 @@ public class AbstractSessionClusterExecutor<
             final ClusterID clusterID = clusterClientFactory.getClusterId(configuration);
             checkState(clusterID != null);
 
+            //构建ClusterClient来提交 jobGraph
             final ClusterClientProvider<ClusterID> clusterClientProvider =
                     clusterDescriptor.retrieve(clusterID);
             ClusterClient<ClusterID> clusterClient = clusterClientProvider.getClusterClient();

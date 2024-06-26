@@ -2035,7 +2035,7 @@ public class StreamExecutionEnvironment {
                 executorFactory,
                 "Cannot find compatible factory for specified execution.target (=%s)",
                 configuration.get(DeploymentOptions.TARGET));
-
+        //获取对应executorFactory,并生成JobGraph
         CompletableFuture<JobClient> jobClientFuture =
                 executorFactory
                         .getExecutor(configuration)

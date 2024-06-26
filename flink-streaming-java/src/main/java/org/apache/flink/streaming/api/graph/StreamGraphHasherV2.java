@@ -78,6 +78,7 @@ public class StreamGraphHasherV2 implements StreamGraphHasher {
         final HashFunction hashFunction = Hashing.murmur3_128(0);
         final Map<Integer, byte[]> hashes = new HashMap<>();
 
+        //维护了2个队列  visited已遍历过  remaining:接下来要遍历的
         Set<Integer> visited = new HashSet<>();
         Queue<StreamNode> remaining = new ArrayDeque<>();
 
