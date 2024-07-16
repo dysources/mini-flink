@@ -71,7 +71,7 @@ manglePath() {
 
 manglePathList() {
     UNAME=$(uname -s)
-    # a path list, for example a java classpath
+    # 路径列表，例如 Java 类路径
     if [ "${UNAME:0:6}" == "CYGWIN" ]; then
         echo `cygpath -wp "$1"`
     else
@@ -79,25 +79,25 @@ manglePathList() {
     fi
 }
 
-# Looks up a config value by key from a simple YAML-style key-value map.
-# $1: key to look up
-# $2: default value to return if key does not exist
-# $3: config file to read from
+# 从简单的 YAML 样式的键值映射中按键查找配置值。
+# $1： 查找密钥
+# $2：如果键不存在，则返回默认值
+# $3： 要读取的配置文件
 readFromConfig() {
     local key=$1
     local defaultValue=$2
     local configFile=$3
 
-    # first extract the value with the given key (1st sed), then trim the result (2nd sed)
-    # if a key exists multiple times, take the "last" one (tail)
+# 首先提取具有给定键的值（第一个 SED），然后修剪结果（第二个 SED）
+    # 如果一个键存在多次，取“最后一个”键（尾部）
     local value=`sed -n "s/^[ ]*${key}[ ]*: \([^#]*\).*$/\1/p" "${configFile}" | sed "s/^ *//;s/ *$//" | tail -n 1`
 
     [ -z "$value" ] && echo "$defaultValue" || echo "$value"
 }
 
 ########################################################################################################################
-# DEFAULT CONFIG VALUES: These values will be used when nothing has been specified in conf/flink-conf.yaml
-# -or- the respective environment variables are not set.
+# 默认配置值： 当 conf/flink-conf.yaml 中未指定任何内容时，将使用这些值
+# - 或 - 未设置相应的环境变量。
 ########################################################################################################################
 
 
@@ -143,10 +143,10 @@ KEY_ZK_HEAP_MB="zookeeper.heap.mb"
 ########################################################################################################################
 
 target="$0"
-# For the case, the executable has been directly symlinked, figure out
-# the correct bin path by following its symlink up to an upper bound.
-# Note: we can't use the readlink utility here if we want to be POSIX
-# compatible.
+# 对于这种情况，可执行文件已经直接符号链接，弄清楚了
+# 通过遵循其符号链接到上限来获得正确的 bin 路径。
+# 注意：如果我们想成为 POSIX，我们不能在这里使用 readlink 工具
+# 兼容。
 iteration=0
 while [ -L "$target" ]; do
     if [ "$iteration" -gt 100 ]; then
@@ -158,12 +158,12 @@ while [ -L "$target" ]; do
     iteration=$((iteration + 1))
 done
 
-# Convert relative path to absolute path and resolve directory symlinks
+# 将相对路径转换为绝对路径并解析目录符号链接
 bin=`dirname "$target"`
 SYMLINK_RESOLVED_BIN=`cd "$bin"; pwd -P`
 
-# Define the main directory of the flink installation
-# If config.sh is called by pyflink-shell.sh in python bin directory(pip installed), then do not need to set the FLINK_HOME here.
+# 定义 flink 安装的主目录
+# 如果 config.sh 是 pyflink-shell.sh 在python bin目录下调用的（已安装pip），则无需在此处设置FLINK_HOME。
 if [ -z "$_FLINK_HOME_DETERMINED" ]; then
     FLINK_HOME=`dirname "$SYMLINK_RESOLVED_BIN"`
 fi
@@ -172,9 +172,9 @@ if [ -z "$FLINK_PLUGINS_DIR" ]; then FLINK_PLUGINS_DIR=$FLINK_HOME/plugins; fi
 if [ -z "$FLINK_OPT_DIR" ]; then FLINK_OPT_DIR=$FLINK_HOME/opt; fi
 
 
-# These need to be mangled because they are directly passed to java.
-# The above lib path is used by the shell script to retrieve jars in a
-# directory, so it needs to be unmangled.
+# 这些需要被修改，因为它们是直接传递给 java 的。
+# 上面的 lib 路径被 shell 脚本用来检索 jar 中
+# 目录，所以需要解开它。
 FLINK_HOME_DIR_MANGLED=`manglePath "$FLINK_HOME"`
 if [ -z "$FLINK_CONF_DIR" ]; then FLINK_CONF_DIR=$FLINK_HOME_DIR_MANGLED/conf; fi
 FLINK_BIN_DIR=$FLINK_HOME_DIR_MANGLED/bin
@@ -182,7 +182,7 @@ DEFAULT_FLINK_LOG_DIR=$FLINK_HOME_DIR_MANGLED/log
 FLINK_CONF_FILE="flink-conf.yaml"
 YAML_CONF=${FLINK_CONF_DIR}/${FLINK_CONF_FILE}
 
-### Exported environment variables ###
+### 导出的环境变量###
 export FLINK_CONF_DIR
 export FLINK_BIN_DIR
 export FLINK_PLUGINS_DIR
@@ -228,12 +228,12 @@ fi
 
 IS_NUMBER="^[0-9]+$"
 
-# Verify that NUMA tooling is available
+# 验证 NUMA 工具是否可用
 command -v numactl >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     FLINK_TM_COMPUTE_NUMA="false"
 else
-    # Define FLINK_TM_COMPUTE_NUMA if it is not already set
+    # 定义FLINK_TM_COMPUTE_NUMA如果尚未设置的话
     if [ -z "${FLINK_TM_COMPUTE_NUMA}" ]; then
         FLINK_TM_COMPUTE_NUMA=$(readFromConfig ${KEY_TASKM_COMPUTE_NUMA} "false" "${YAML_CONF}")
     fi
@@ -375,10 +375,10 @@ if [ -n "${HBASE_CONF_DIR}" ]; then
     INTERNAL_HADOOP_CLASSPATHS="${INTERNAL_HADOOP_CLASSPATHS}:${HBASE_CONF_DIR}"
 fi
 
-# Auxilliary function which extracts the name of host from a line which
-# also potentially includes topology information and the taskManager type
+# 辅助函数，从一行中提取主机名称，该行
+# 还可能包括拓扑信息和 taskManager 类型
 extractHostName() {
-    # handle comments: extract first part of string (before first # character)
+    # 处理注释：提取字符串的第一部分（在第一个 # 字符之前）
     WORKER=`echo $1 | cut -d'#' -f 1`
 
     # Extract the hostname from the network hierarchy

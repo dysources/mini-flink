@@ -66,12 +66,12 @@ pid=$FLINK_PID_DIR/flink-$FLINK_IDENT_STRING-$DAEMON.pid
 
 mkdir -p "$FLINK_PID_DIR"
 
-# Log files for daemons are indexed from the process ID's position in the PID
-# file. The following lock prevents a race condition during daemon startup
-# when multiple daemons read, index, and write to the PID file concurrently.
-# The lock is created on the PID directory since a lock file cannot be safely
-# removed. The daemon is started with the lock closed and the lock remains
-# active in this script until the script exits.
+# 守护进程的日志文件从进程 ID 在 PID 中的位置进行索引
+# 文件。以下锁可防止在守护程序启动期间出现争用条件
+# 当多个守护进程同时读取、索引和写入 PID 文件时。
+# 锁是在 PID 目录下创建的，因为锁文件不能安全
+# 已删除。守护程序在锁关闭的情况下启动，锁保持状态
+# 在此脚本中处于活动状态，直到脚本退出。
 command -v flock >/dev/null 2>&1
 if [[ $? -eq 0 ]]; then
     exec 200<"$FLINK_PID_DIR"
@@ -114,6 +114,7 @@ case $STARTSTOP in
         if [ -f "$pid" ]; then
           active=()
           while IFS='' read -r p || [[ -n "$p" ]]; do
+            ## kill -0 用来检测进程是否存在
             kill -0 $p >/dev/null 2>&1
             if [ $? -eq 0 ]; then
               active+=($p)

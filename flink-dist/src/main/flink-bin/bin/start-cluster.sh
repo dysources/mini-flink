@@ -23,7 +23,7 @@ bin=`cd "$bin"; pwd`
 . "$bin"/config.sh
 
 # Start the JobManager instance(s)
-shopt -s nocasematch
+shopt -s nocasematch   ##启用大小写不敏感
 if [[ $HIGH_AVAILABILITY == "zookeeper" ]]; then
     # HA Mode
     readMasters
@@ -49,5 +49,5 @@ else
 fi
 shopt -u nocasematch
 
-# Start TaskManager instance(s)
+# Start TaskManager instance(s) 调用config.sh中的方法，用来启动taskmanager
 TMWorkers start
