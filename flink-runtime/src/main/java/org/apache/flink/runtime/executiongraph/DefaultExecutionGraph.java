@@ -432,7 +432,7 @@ public class DefaultExecutionGraph implements ExecutionGraph, InternalExecutionG
                 Executors.newSingleThreadScheduledExecutor(
                         new DispatcherThreadFactory(
                                 Thread.currentThread().getThreadGroup(), "Checkpoint Timer"));
-
+        //step 二、11. 创建CheckpointCoordinator来管理checkpoint
         // create the coordinator that triggers and commits checkpoints and holds the state
         checkpointCoordinator =
                 new CheckpointCoordinator(
@@ -775,7 +775,7 @@ public class DefaultExecutionGraph implements ExecutionGraph, InternalExecutionG
             if (jobVertex.isInputVertex() && !jobVertex.isStoppable()) {
                 this.isStoppable = false;
             }
-
+            //step 并行度设置
             VertexParallelismInformation parallelismInfo =
                     parallelismStore.getParallelismInfo(jobVertex.getID());
 

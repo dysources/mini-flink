@@ -193,13 +193,14 @@ public class DefaultExecutionGraphBuilder {
                     jobName,
                     jobId);
         }
+        //step 在初始化过程中，设置各种配置并将作业的顶点和边附加到图中
         executionGraph.attachJobGraph(sortedTopology);
 
         if (log.isDebugEnabled()) {
             log.debug(
                     "Successfully created execution graph from job graph {} ({}).", jobName, jobId);
         }
-
+        //step checkPoint相关配置
         // configure the state checkpointing
         if (isCheckpointingEnabled(jobGraph)) {
             JobCheckpointingSettings snapshotSettings = jobGraph.getCheckpointingSettings();
@@ -229,7 +230,7 @@ public class DefaultExecutionGraphBuilder {
                             jobId, "Could not deserialize application-defined state backend.", e);
                 }
             }
-
+            //step 状态后端的选择
             final StateBackend rootBackend;
             try {
                 rootBackend =
@@ -311,7 +312,7 @@ public class DefaultExecutionGraphBuilder {
 
             final CheckpointCoordinatorConfiguration chkConfig =
                     snapshotSettings.getCheckpointCoordinatorConfiguration();
-
+            //step 二、10. 启用CK相关的配置
             executionGraph.enableCheckpointing(
                     chkConfig,
                     hooks,

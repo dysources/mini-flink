@@ -64,7 +64,6 @@ public class DefaultJobMasterServiceProcessFactory implements JobMasterServicePr
     public JobID getJobId() {
         return jobId;
     }
-
     @Override
     public ArchivedExecutionGraph createArchivedExecutionGraph(
             JobStatus jobStatus, @Nullable Throwable cause) {

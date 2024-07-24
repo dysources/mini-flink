@@ -97,7 +97,7 @@ public class DefaultJobMasterServiceFactory implements JobMasterServiceFactory {
 
     private JobMasterService internalCreateJobMasterService(
             UUID leaderSessionId, OnCompletionActions onCompletionActions) throws Exception {
-
+        //step 二、6. 创建JobMaster
         final JobMaster jobMaster =
                 new JobMaster(
                         rpcService,

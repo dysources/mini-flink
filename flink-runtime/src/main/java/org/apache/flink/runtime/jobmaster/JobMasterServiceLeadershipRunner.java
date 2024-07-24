@@ -159,7 +159,6 @@ public class JobMasterServiceLeadershipRunner implements JobManagerRunner, Leade
 
         return terminationFuture;
     }
-
     @Override
     public void start() throws Exception {
         LOG.debug("Start leadership runner for job {}.", getJobID());
@@ -242,7 +241,7 @@ public class JobMasterServiceLeadershipRunner implements JobManagerRunner, Leade
             return jobMasterServiceProcess.isInitializedAndRunning();
         }
     }
-
+    //step 二、3. 开始leader选举及启动JobM
     @Override
     public void grantLeadership(UUID leaderSessionID) {
         runIfStateRunning(
@@ -321,7 +320,7 @@ public class JobMasterServiceLeadershipRunner implements JobManagerRunner, Leade
                             getJobID()),
                     e);
         }
-
+        //step 二、4. 创建JobMaster
         jobMasterServiceProcess = jobMasterServiceProcessFactory.create(leaderSessionId);
 
         forwardIfValidLeader(

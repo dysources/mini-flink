@@ -123,6 +123,7 @@ public abstract class ClusterEntrypoint implements AutoCloseableAsync, FatalErro
 
     private final AtomicBoolean isShutDown = new AtomicBoolean(false);
 
+    // step GuardedBy("lock")注解的意思是，只有持有lock锁才能访问DispatcherResourceManagerComponent
     @GuardedBy("lock")
     private DispatcherResourceManagerComponent clusterComponent;
 

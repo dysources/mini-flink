@@ -115,7 +115,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
     private final BlobServer blobServer;
 
     private final FatalErrorHandler fatalErrorHandler;
-
+    //维护jobID及对应的JobMaster
     private final Map<JobID, JobManagerRunner> runningJobs;
 
     private final Collection<JobGraph> recoveredJobs;
@@ -295,7 +295,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
     // ------------------------------------------------------
     // RPCs
     // ------------------------------------------------------
-
+    //step 二、1. flink run 后的入口任务提交
     @Override
     public CompletableFuture<Acknowledge> submitJob(JobGraph jobGraph, Time timeout) {
         log.info(
@@ -399,8 +399,9 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
                 },
                 ioExecutor);
     }
-
+    //分布式存储+运行Job
     private void persistAndRunJob(JobGraph jobGraph) throws Exception {
+        //存在则
         jobGraphWriter.putJobGraph(jobGraph);
         runJob(jobGraph, ExecutionType.SUBMISSION);
     }
@@ -408,6 +409,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
     private void runJob(JobGraph jobGraph, ExecutionType executionType) throws Exception {
         Preconditions.checkState(!runningJobs.containsKey(jobGraph.getJobID()));
         long initializationTimestamp = System.currentTimeMillis();
+         //step 二、2. 创建JobManagerRunner，内部做了个leader选举，为了HA
         JobManagerRunner jobManagerRunner =
                 createJobManagerRunner(jobGraph, initializationTimestamp);
 

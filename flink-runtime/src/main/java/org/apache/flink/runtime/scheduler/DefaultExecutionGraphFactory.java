@@ -102,7 +102,7 @@ public class DefaultExecutionGraphFactory implements ExecutionGraphFactory {
                         executionDeploymentTracker.stopTrackingDeploymentOf(execution);
                     }
                 };
-
+        //step 二、9. 创建ExecutionGraph
         final ExecutionGraph newExecutionGraph =
                 DefaultExecutionGraphBuilder.buildGraph(
                         jobGraph,

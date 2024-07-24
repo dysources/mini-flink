@@ -51,6 +51,7 @@ public class StandaloneSessionClusterEntrypoint extends SessionClusterEntrypoint
                         args,
                         new EntrypointClusterConfigurationParserFactory(),
                         StandaloneSessionClusterEntrypoint.class);
+        // step 加载参数 args内及flink-conf中参数
         Configuration configuration = loadConfiguration(entrypointClusterConfiguration);
 
         StandaloneSessionClusterEntrypoint entrypoint =

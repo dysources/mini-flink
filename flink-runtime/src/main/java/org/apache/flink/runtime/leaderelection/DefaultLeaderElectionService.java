@@ -193,6 +193,7 @@ public class DefaultLeaderElectionService
         confirmedLeaderAddress = null;
     }
 
+    //step 看看从哪就到这的
     @Override
     @GuardedBy("lock")
     public void onGrantLeadership() {

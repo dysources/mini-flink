@@ -140,7 +140,7 @@ public class PipelinedRegionSchedulingStrategy implements SchedulingStrategy {
             }
         }
     }
-
+    //step 启动job调度
     @Override
     public void startScheduling() {
         final Set<SchedulingPipelinedRegion> sourceRegions =

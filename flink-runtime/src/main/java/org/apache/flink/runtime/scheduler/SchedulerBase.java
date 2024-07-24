@@ -186,7 +186,7 @@ public abstract class SchedulerBase implements SchedulerNG, CheckpointScheduling
         this.checkpointIdCounter =
                 SchedulerUtils.createCheckpointIDCounterIfCheckpointingIsEnabled(
                         jobGraph, checkNotNull(checkpointRecoveryFactory));
-
+        //step 二、8. 创建ExecutionGraph
         this.executionGraph =
                 createAndRestoreExecutionGraph(
                         completedCheckpointStore,
